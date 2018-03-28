@@ -1,4 +1,4 @@
-
+import numpy as np
 import pandas
 from pandas.plotting import scatter_matrix
 import matplotlib.pyplot as plt
@@ -13,45 +13,23 @@ from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.naive_bayes import GaussianNB
 from sklearn.svm import SVC
 
-print('Le dataset')
-dataset = pandas.read_csv('dataset/orders.csv')
-dataset = dataset.drop(labels='eval_set', axis=1) #remove coluna eval_set
-
+##### Leitura dataset #####
+orders = pandas.read_csv('dataset/orders.csv')
+products = pandas.read_csv('dataset/products.csv')
 # remove linhas que possuem valor nam
-dataset.dropna(inplace=True)
+products.dropna(inplace=True)
+# remove linhas que possuem valor nam
+orders.dropna(inplace=True)
 
-print('Separa X e Y')
-array = dataset.values
-X = array[:, 1:6] #cliente, eval_set, order_number, order_dow, order_hour_of_day, days_since_prior_order
-y = array[:, 0]  #pedidos
+orders_train = orders.iloc[orders.values[:, 2] == 'train', :]
+orders_prior = orders.iloc[orders.values[:, 2] == 'prior', :]
 
-# dividindo dataset
-X_train, X_test, y_train, y_test = model_selection.train_test_split(X, y, test_size = 0.2, random_state = 0)
+##### Treinamento #####
+order_products = pandas.read_csv('dataset/order_products__train.csv')
+# remove linhas que possuem valor nam
+order_products.dropna(inplace=True)
 
-print('Spot-check')
-# Algoritmos Spot-check
-models = []
-models.append(('LR', LogisticRegression()))
-models.append(('LDA', LinearDiscriminantAnalysis()))
-models.append(('KNN', KNeighborsClassifier()))
-models.append(('CART', DecisionTreeClassifier()))
-models.append(('NB', GaussianNB()))
-models.append(('SVM', SVC()))
-# evaluate each model in turn
-results = []
-names = []
-for name, model in models:
-    print(name)
-    
-    print('kfold')
-    kfold = model_selection.KFold(n_splits=10, random_state=7)
-    print('cv_results')
-    cv_results = model_selection.cross_val_score(model, X_train, y_train, cv=kfold, scoring='accuracy', n_jobs=-1)
-    print('results.append')
-    results.append(cv_results)
-    print('name.append')
-    names.append(name)
-    msg = "%s: %f (%f)" % (name, cv_results.mean(), cv_results.std())
-    print(msg)
+dataset_order = pandas.merge(order_products, orders_train, on='order_id', how='outer')
+dataset_products = pandas.merge(order_products, products, on='product_id', how='outer')
 
-
+#print(products_orders.head(20))
